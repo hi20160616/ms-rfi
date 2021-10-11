@@ -189,8 +189,8 @@ github.com/hi20160616/exhtml v0.0.0-20211011024837-0504789de279 h1:4HNJEF4TN0tI9
 github.com/hi20160616/exhtml v0.0.0-20211011024837-0504789de279/go.mod h1:YGSR6kFdrkPHKS4QEhR027ONisguhXAy0hyJ2fw8Nwo=
 github.com/hi20160616/fetchnews-api v0.0.0-20210527092959-c7f6971039c7 h1:9hWmG/yAeKwOinmOQHBHT0inQINmRdm5nBRxrMlMVg8=
 github.com/hi20160616/fetchnews-api v0.0.0-20210527092959-c7f6971039c7/go.mod h1:JrSJg24dz2xHo3m37Ri/9EcqLcfpcW+aDYaos68MDa8=
-github.com/hi20160616/gears v0.0.0-20201201083715-3454c2a9d4d7 h1:qbSSGe83L/cW02MmUfsnohrEjQphzKyahDhUH7OHR20=
-github.com/hi20160616/gears v0.0.0-20201201083715-3454c2a9d4d7/go.mod h1:37KXh1jB9KVMkC37xWtvbJrf97DB0pWVw86sa01BaaQ=
+github.com/hi20160616/gears v0.0.0-20211011123823-9336c3913d20 h1:81rAcbqUnrfVjOwrlcGstNS9BMeJTZN9wYQ9392Dklo=
+github.com/hi20160616/gears v0.0.0-20211011123823-9336c3913d20/go.mod h1:94zXxv0pKKPbYPnnSLRqxBOYr6oPZxZH+a4fGEb36Lg=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/jhump/protoreflect v1.8.1/go.mod h1:7GcYQDdMU/O/BBrl/cX6PNHpXh6cenjd8pneu5yW7Tg=

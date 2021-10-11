@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/hi20160616/exhtml v0.0.0-20211011024837-0504789de279
 	github.com/hi20160616/fetchnews-api v0.0.0-20210527092959-c7f6971039c7
-	github.com/hi20160616/gears v0.0.0-20201201083715-3454c2a9d4d7
+	github.com/hi20160616/gears v0.0.0-20211011123823-9336c3913d20
 	github.com/pkg/errors v0.9.1
 	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9

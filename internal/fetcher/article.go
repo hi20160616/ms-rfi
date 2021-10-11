@@ -214,7 +214,8 @@ func (a *Article) fetchContent() (string, error) {
 	}
 	for _, v := range plist {
 		if v.FirstChild != nil {
-			body += v.FirstChild.Data + "  \n"
+			// body += v.FirstChild.Data + "  \n"
+			body += gears.ChangeIllegalChar(v.FirstChild.Data) + "  \n"
 		}
 	}
 	return body, nil
@@ -232,8 +233,6 @@ func (a *Article) fmtContent(body string) (string, error) {
 
 	body = strings.ReplaceAll(body, "strong  \n", "")
 	body = strings.ReplaceAll(body, "下载法广应用程序跟踪国际时事  \n", "")
-	body = strings.ReplaceAll(body, "「", "“")
-	body = strings.ReplaceAll(body, "」", "”")
 
 	body = title +
 		"LastUpdate: " + lastupdate +

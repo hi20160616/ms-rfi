@@ -11,7 +11,6 @@ import (
 	"github.com/hi20160616/exhtml"
 	"github.com/hi20160616/gears"
 	"github.com/hi20160616/ms-rfi/configs"
-	"github.com/hycka/gocc"
 	"golang.org/x/net/html"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -106,17 +105,6 @@ var timeout = func() time.Duration {
 
 // fetchArticle fetch article by rawurl
 func (a *Article) fetchArticle(rawurl string) (*Article, error) {
-	translate := func(x string, err error) (string, error) {
-		if err != nil {
-			return "", err
-		}
-		tw2s, err := gocc.New("tw2s")
-		if err != nil {
-			return "", err
-		}
-		return tw2s.Convert(x)
-	}
-
 	var err error
 	a.U, err = url.Parse(rawurl)
 	if err != nil {
@@ -156,7 +144,7 @@ func (a *Article) fetchArticle(rawurl string) (*Article, error) {
 		return nil, err
 	}
 
-	a.Content, err = translate(a.fmtContent(a.Content))
+	a.Content, err = a.fmtContent(a.Content)
 	if err != nil {
 		return nil, err
 	}
@@ -244,6 +232,8 @@ func (a *Article) fmtContent(body string) (string, error) {
 
 	body = strings.ReplaceAll(body, "strong  \n", "")
 	body = strings.ReplaceAll(body, "下载法广应用程序跟踪国际时事  \n", "")
+	body = strings.ReplaceAll(body, "「", "“")
+	body = strings.ReplaceAll(body, "」", "”")
 
 	body = title +
 		"LastUpdate: " + lastupdate +

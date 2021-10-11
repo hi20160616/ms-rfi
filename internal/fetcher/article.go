@@ -11,6 +11,7 @@ import (
 	"github.com/hi20160616/exhtml"
 	"github.com/hi20160616/gears"
 	"github.com/hi20160616/ms-rfi/configs"
+	"github.com/hycka/gocc"
 	"golang.org/x/net/html"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -105,32 +106,61 @@ var timeout = func() time.Duration {
 
 // fetchArticle fetch article by rawurl
 func (a *Article) fetchArticle(rawurl string) (*Article, error) {
+	translate := func(x string, err error) (string, error) {
+		if err != nil {
+			return "", err
+		}
+		tw2s, err := gocc.New("tw2s")
+		if err != nil {
+			return "", err
+		}
+		return tw2s.Convert(x)
+	}
+
 	var err error
 	a.U, err = url.Parse(rawurl)
 	if err != nil {
 		return nil, err
 	}
 	// Dail
-	a.raw, a.doc, err = exhtml.GetRawAndDoc(a.U, timeout)
+	a.raw, a.doc, err = exhtml.GetRawAndDoc(a.U, 1*time.Minute)
 	if err != nil {
-		return nil, err
+		if strings.Contains(err.Error(), "invalid header") {
+			a.Title = a.U.Path
+			a.UpdateTime = timestamppb.Now()
+			a.Content, err = a.fmtContent("")
+			if err != nil {
+				return nil, err
+			}
+			return a, nil
+		} else {
+			return nil, err
+		}
 	}
+
 	a.Id = fmt.Sprintf("%x", md5.Sum([]byte(rawurl)))
+
 	a.Title, err = a.fetchTitle()
 	if err != nil {
 		return nil, err
 	}
+
 	a.UpdateTime, err = a.fetchUpdateTime()
 	if err != nil {
 		return nil, err
 	}
+
 	// content should be the last step to fetch
 	a.Content, err = a.fetchContent()
 	if err != nil {
 		return nil, err
 	}
-	return a, nil
 
+	a.Content, err = translate(a.fmtContent(a.Content))
+	if err != nil {
+		return nil, err
+	}
+	return a, nil
 }
 
 func (a *Article) fetchTitle() (string, error) {
@@ -139,14 +169,13 @@ func (a *Article) fetchTitle() (string, error) {
 		return "", fmt.Errorf("[%s] getTitle error, there is no element <title>", configs.Data.MS.Title)
 	}
 	title := n[0].FirstChild.Data
-	title = strings.ReplaceAll(title, " - BBC News 中文", "")
 	title = strings.TrimSpace(title)
 	gears.ReplaceIllegalChar(&title)
 	return title, nil
 }
 
 func (a *Article) fetchUpdateTime() (*timestamppb.Timestamp, error) {
-	metas := exhtml.MetasByName(a.doc, "article:modified_time")
+	metas := exhtml.MetasByProperty(a.doc, "article:published_time")
 	cs := []string{}
 	for _, meta := range metas {
 		for _, a := range meta.Attr {
@@ -162,6 +191,10 @@ func (a *Article) fetchUpdateTime() (*timestamppb.Timestamp, error) {
 	if err != nil {
 		return nil, err
 	}
+	if t.Before(time.Now().AddDate(0, 0, -3)) {
+		return timestamppb.New(t), ErrTimeOverDays
+	}
+
 	return timestamppb.New(t), nil
 }
 
@@ -172,28 +205,35 @@ func shanghai(t time.Time) time.Time {
 
 func (a *Article) fetchContent() (string, error) {
 	body := ""
-	// Fetch content nodes
-	nodes := exhtml.ElementsByTag(a.doc, "main")
-	if len(nodes) == 0 {
-		return "", fmt.Errorf("[%s] ElementsByTag match nothing from: %s",
-			configs.Data.MS.Title, a.U.String())
-	}
-	articleDoc := nodes[0]
-	plist := exhtml.ElementsByTag(articleDoc, "h2", "p")
-	for _, v := range plist {
-		if v.FirstChild != nil {
-			if v.Parent.FirstChild.Data == "h2" {
-				body += fmt.Sprintf("\n**%s**  \n", v.FirstChild.Data)
-			} else if v.FirstChild.Data == "b" {
-				body += fmt.Sprintf("\n**%s**  \n", v.FirstChild.FirstChild.Data)
-			} else {
-				body += v.FirstChild.Data + "  \n"
-			}
-		}
+	// Fetch summary
+	summaryN := exhtml.ElementsByTagAndClass(a.doc, "p", "t-content__chapo")
+	if len(summaryN) != 0 {
+		summary := summaryN[0].FirstChild.Data
+		body += "> " + strings.TrimSpace(summary) + "  \n"
 	}
 
-	// Format content
-	body = strings.ReplaceAll(body, "span  \n", "")
+	// Fetch content
+	n := exhtml.ElementsByTagAndClass(a.doc, "div", "t-content__body u-clearfix")
+	if len(n) == 0 {
+		return "", fmt.Errorf("[%s] Fetch no content from: %s",
+			configs.Data.MS.Title, a.U.String())
+	}
+
+	plist := exhtml.ElementsByTag(n[0], "p")
+	if len(plist) == 0 {
+		return "", fmt.Errorf("[%s] Fetch no <p> from: %s",
+			configs.Data.MS.Title, a.U.String())
+	}
+	for _, v := range plist {
+		if v.FirstChild != nil {
+			body += v.FirstChild.Data + "  \n"
+		}
+	}
+	return body, nil
+}
+
+func (a *Article) fmtContent(body string) (string, error) {
+	var err error
 	title := "# " + a.Title + "\n\n"
 	lastupdate := shanghai(a.UpdateTime.AsTime()).Format(time.RFC3339)
 	webTitle := fmt.Sprintf(" @ [%s](/list/?v=%[1]s): [%[2]s](http://%[2]s)", a.WebsiteTitle, a.WebsiteDomain)
@@ -201,6 +241,9 @@ func (a *Article) fetchContent() (string, error) {
 	if err != nil {
 		u = a.U.String() + "\n\nunescape url error:\n" + err.Error()
 	}
+
+	body = strings.ReplaceAll(body, "strong  \n", "")
+	body = strings.ReplaceAll(body, "下载法广应用程序跟踪国际时事  \n", "")
 
 	body = title +
 		"LastUpdate: " + lastupdate +

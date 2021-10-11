@@ -57,6 +57,8 @@ func fetchLinks() ([]string, error) {
 		`/%E5%BA%94%E7%94%A8$`,
 		`/%E8%A7%86%E9%A2%91$`,
 		`/%E6%88%91%E4%BB%AC%E6%98%AF%E8%B0%81$`,
+		`/%E6%BB%9A%E5%8A%A8%E6%96%B0%E9%97%BB/$`,
+		`%E6%AC%A1%E6%92%AD%E9%9F%B3-%E5%8C%97%E4%BA%AC%E6%97%B6%E9%97%B4`,
 	}
 	for _, re := range regs {
 		rt = kickOutLinksRegex(rt, re)

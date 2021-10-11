@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type configuration struct {
@@ -25,9 +26,16 @@ type MicroService struct {
 var Data = &configuration{}
 
 func setRootPath() error {
-	root, err := os.Getwd()
-	if err != nil {
-		return err
+	var root string
+	var err error
+	if strings.Contains(os.Args[0], ".test") {
+		root = "../../" // for test dbmanager
+		// root = "../" // for test configs
+	} else {
+		root, err = os.Getwd()
+		if err != nil {
+			log.Printf("config Getwd: %#v", err)
+		}
 	}
 	Data.RootPath = root
 	return nil

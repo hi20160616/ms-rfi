@@ -30,9 +30,9 @@ type Article struct {
 
 func NewArticle() *Article {
 	return &Article{
-		WebsiteDomain: configs.Data.MS.Domain,
-		WebsiteTitle:  configs.Data.MS.Title,
-		WebsiteId:     fmt.Sprintf("%x", md5.Sum([]byte(configs.Data.MS.Domain))),
+		WebsiteDomain: configs.Data.MS["rfi"].Domain,
+		WebsiteTitle:  configs.Data.MS["rfi"].Title,
+		WebsiteId:     fmt.Sprintf("%x", md5.Sum([]byte(configs.Data.MS["rfi"].Domain))),
 	}
 }
 
@@ -53,8 +53,8 @@ func (a *Article) Get(id string) (*Article, error) {
 			return a, nil
 		}
 	}
-	return nil, fmt.Errorf("[%s] no article with id: %s, url: %s",
-		configs.Data.MS.Title, id, a.U.String())
+	return nil, fmt.Errorf("[%s] no article with id: %s",
+		configs.Data.MS["rfi"].Title, id)
 }
 
 func (a *Article) Search(keyword ...string) ([]*Article, error) {
@@ -95,9 +95,9 @@ func (u ByUpdateTime) Less(i, j int) bool {
 }
 
 var timeout = func() time.Duration {
-	t, err := time.ParseDuration(configs.Data.MS.Timeout)
+	t, err := time.ParseDuration(configs.Data.MS["rfi"].Timeout)
 	if err != nil {
-		log.Printf("[%s] timeout init error: %v", configs.Data.MS.Title, err)
+		log.Printf("[%s] timeout init error: %v", configs.Data.MS["rfi"].Title, err)
 		return time.Duration(1 * time.Minute)
 	}
 	return t
@@ -154,7 +154,7 @@ func (a *Article) fetchArticle(rawurl string) (*Article, error) {
 func (a *Article) fetchTitle() (string, error) {
 	n := exhtml.ElementsByTag(a.doc, "title")
 	if n == nil {
-		return "", fmt.Errorf("[%s] getTitle error, there is no element <title>", configs.Data.MS.Title)
+		return "", fmt.Errorf("[%s] getTitle error, there is no element <title>", configs.Data.MS["rfi"].Title)
 	}
 	title := n[0].FirstChild.Data
 	title = strings.TrimSpace(title)
@@ -173,7 +173,7 @@ func (a *Article) fetchUpdateTime() (*timestamppb.Timestamp, error) {
 		}
 	}
 	if len(cs) <= 0 {
-		return nil, fmt.Errorf("[%s] setData got nothing.", configs.Data.MS.Title)
+		return nil, fmt.Errorf("[%s] setData got nothing.", configs.Data.MS["rfi"].Title)
 	}
 	t, err := time.Parse(time.RFC3339, cs[0])
 	if err != nil {
@@ -204,13 +204,13 @@ func (a *Article) fetchContent() (string, error) {
 	n := exhtml.ElementsByTagAndClass(a.doc, "div", "t-content__body u-clearfix")
 	if len(n) == 0 {
 		return "", fmt.Errorf("[%s] Fetch no content from: %s",
-			configs.Data.MS.Title, a.U.String())
+			configs.Data.MS["rfi"].Title, a.U.String())
 	}
 
 	plist := exhtml.ElementsByTag(n[0], "p")
 	if len(plist) == 0 {
 		return "", fmt.Errorf("[%s] Fetch no <p> from: %s",
-			configs.Data.MS.Title, a.U.String())
+			configs.Data.MS["rfi"].Title, a.U.String())
 	}
 	for _, v := range plist {
 		if v.FirstChild != nil {

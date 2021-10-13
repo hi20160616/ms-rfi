@@ -1,13 +1,7 @@
 {
-  "dbpath":"db",
-  "microservice":{
-    "title":"rfi",
-    "domain":"www.rfi.fr",
-    "url":[
-      "https://www.rfi.fr/cn/"
-    ],
-    "addr":":10004",
-    "timeout":"1s",
-    "heartbeat":"30m"
-  }
+  "debug":false,
+  "verbose":false,
+  "gist": "https://gist.githubusercontent.com/hi20160616/277faf779bee0d0d1525696eff6e8b56/raw/configs.json",
+  "dbpath":"db"
 }
+
